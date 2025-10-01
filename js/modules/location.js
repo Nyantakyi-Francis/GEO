@@ -1,28 +1,55 @@
-// js/modules/location.js
-const MAPBOX_TOKEN =
-    "pk.eyJ1IjoiZnJhbmNpc255YW50YW50YWt5aSIsImEiOiJjbWc2dHNwc3gwaXVxMmtwYjA0enM1N2N0In0.qjW9AztKdyKHzL-HycqEqA";
+/**
+ * js/modules/locationService.js
+ * GeoSphere Location Service Module
+ * Responsibility: Get user's location and reverse geocode to a human-readable address.
+ */
+
+const MAPBOX_TOKEN = "pk.eyJ1IjoiZnJhbmNpc255YW50YWt5a2l...qjW9AztKdyKHzL-HycqEqA"; // your pk token
 
 /**
- * Initializes the map and returns the instance
+ * Get user's current geolocation.
+ * @returns {Promise<{lat:number, lon:number}>}
  */
-export function initMap(lng = -74.5, lat = 40, zoom = 9) {
-    mapboxgl.accessToken = MAPBOX_TOKEN;
-
-    const map = new mapboxgl.Map({
-        container: "map",
-        style: "mapbox://styles/mapbox/streets-v12",
-        center: [lng, lat],
-        zoom: zoom,
+export function getUserCoordinates() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject("Geolocation not supported by your browser.");
+        } else {
+            navigator.geolocation.getCurrentPosition(
+                pos => {
+                    resolve({
+                        lat: pos.coords.latitude,
+                        lon: pos.coords.longitude
+                    });
+                },
+                err => reject("Unable to retrieve your location: " + err.message)
+            );
+        }
     });
-
-    new mapboxgl.Marker().setLngLat([lng, lat]).addTo(map);
-
-    return map;
 }
 
 /**
- * Example: return default location
+ * Reverse geocode coordinates to city + country.
+ * @param {number} lat
+ * @param {number} lon
+ * @returns {Promise<string>}
  */
-export async function getLocation() {
-    return "Salt Lake City, UT";
+export async function reverseGeocode(lat, lon) {
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lon},${lat}.json?access_token=${MAPBOX_TOKEN}`;
+
+    try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Failed to fetch location info.");
+
+        const data = await res.json();
+        const place = data.features.find(f => f.place_type.includes("place"));
+        const country = data.features.find(f => f.place_type.includes("country"));
+
+        return place && country
+            ? `${place.text}, ${country.text}`
+            : "Unknown location";
+    } catch (error) {
+        console.error("Reverse geocode error:", error);
+        return "Unknown location";
+    }
 }
