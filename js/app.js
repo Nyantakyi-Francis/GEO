@@ -1,9 +1,9 @@
 // js/app.js
 
-import { initializeMap, updateMap, getCurrentPosition, geocodeSearch } from './modules/location.js';
+import { initializeMap, updateMap, getCurrentPosition, geocodeSearch, reverseGeocode } from './modules/location.js';
 import { fetchNews } from './modules/newsService.js';
-import { fetchTrivia } from './modules/factsService.js';
-import { getFavorites, addFavorite } from './modules/storage.js';
+import { fetchTriviaQuestion, checkAnswer } from './modules/factsService.js';
+import { addFavorite, removeFavorite, getFavorites, isFavorite } from './modules/storage.js';
 import { renderNewsCards, renderTrivia, renderFavorites, setActiveTab } from './modules/ui.js';
 
 // --- Initialize Map ---
