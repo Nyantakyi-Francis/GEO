@@ -1,32 +1,15 @@
-/**
- * js/modules/factsService.js
- * GeoSphere Facts Service Module
- * Responsibility: Provide random fun facts about Earth, weather, and geography.
- */
+// factsService.js
+// A simple fun facts generator
 
 const facts = [
-    "The Amazon rainforest produces 20% of the world's oxygen.",
-    "Mount Everest grows about 4 millimeters every year.",
-    "The Sahara Desert is roughly the size of the United States.",
-    "The Pacific Ocean is larger than all landmasses combined.",
-    "Lake Baikal in Russia holds 20% of the world's unfrozen freshwater.",
-    "Iceland has more volcanoes than any other country in the world.",
-    "The Nile is the longest river, stretching over 6,600 kilometers.",
-    "The Dead Sea is so salty that people float effortlessly on its surface.",
-    "Hurricanes in the Southern Hemisphere rotate clockwise.",
-    "Earth is the only planet known to have plate tectonics.",
-    "Antarctica holds 60% of the world’s freshwater in its ice sheets.",
-    "The Mariana Trench is deeper than Mount Everest is tall.",
-    "Weather in the tropics changes rapidly due to high humidity.",
-    "Tornadoes can reach wind speeds of over 300 mph.",
-    "Greenland is the world’s largest island that is not a continent."
+    "The Earth is the only planet known to support life.",
+    "Mount Everest is the tallest mountain above sea level.",
+    "The Amazon rainforest produces about 20% of the world’s oxygen.",
+    "The Sahara is the largest hot desert on Earth.",
+    "The Pacific Ocean is the largest ocean on Earth."
 ];
 
-/**
- * Get a random fact.
- * @returns {string} fact
- */
-export function getRandomFact() {
+export function getFact() {
     const index = Math.floor(Math.random() * facts.length);
     return facts[index];
 }

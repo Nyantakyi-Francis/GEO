@@ -1,71 +1,28 @@
-/**
- * js/modules/storage.js
- * GeoSphere Storage Service Module
- * Responsibility: Manage persistence of user's favorite locations.
- */
+// storage.js
+// A small utility for working with localStorage
 
-const STORAGE_KEY = 'gs-favorites';
-
-/**
- * Get favorites list from localStorage.
- * @returns {Array} favorites
- */
-export function getFavorites() {
+export function saveToStorage(key, value) {
     try {
-        const data = localStorage.getItem(STORAGE_KEY);
-        return data ? JSON.parse(data) : [];
+        localStorage.setItem(key, JSON.stringify(value));
     } catch (err) {
-        console.error("Error reading favorites:", err);
-        return [];
+        console.error("Error saving to storage:", err);
     }
 }
 
-/**
- * Save favorites list to localStorage.
- * @param {Array} favorites
- */
-function saveFavorites(favorites) {
+export function getFromStorage(key, defaultValue = null) {
     try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
+        const data = localStorage.getItem(key);
+        return data ? JSON.parse(data) : defaultValue;
     } catch (err) {
-        console.error("Error saving favorites:", err);
+        console.error("Error reading from storage:", err);
+        return defaultValue;
     }
 }
 
-/**
- * Add a favorite location (avoids duplicates).
- * @param {Object} location {city, region, lat, lng}
- */
-export function addFavorite(location) {
-    const favorites = getFavorites();
-    const exists = favorites.some(
-        fav => fav.lat === location.lat && fav.lng === location.lng
-    );
-    if (!exists) {
-        favorites.push(location);
-        saveFavorites(favorites);
+export function removeFromStorage(key) {
+    try {
+        localStorage.removeItem(key);
+    } catch (err) {
+        console.error("Error removing from storage:", err);
     }
-    return favorites;
-}
-
-/**
- * Remove a favorite by coordinates.
- * @param {number} lat
- * @param {number} lng
- */
-export function removeFavorite(lat, lng) {
-    let favorites = getFavorites();
-    favorites = favorites.filter(fav => fav.lat !== lat || fav.lng !== lng);
-    saveFavorites(favorites);
-    return favorites;
-}
-
-/**
- * Check if a location is already favorited.
- * @param {number} lat
- * @param {number} lng
- */
-export function isFavorite(lat, lng) {
-    const favorites = getFavorites();
-    return favorites.some(fav => fav.lat === lat && fav.lng === lng);
 }
