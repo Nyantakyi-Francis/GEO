@@ -62,4 +62,5 @@ export async function fetchNews(city, filter) {
         console.error('News fetch error:', error);
         return [];
     }
+    
 }
