@@ -1,109 +1,88 @@
-// js/ui.js
+// js/app.js
 
-// --- DOM References ---
-const newsContainer = document.getElementById('news-container');
-const triviaContainer = document.getElementById('trivia-container');
-const favoritesContainer = document.getElementById('favorites-container');
-const tabButtons = document.querySelectorAll('.tab-btn');
+import { initializeMap, updateMap, getCurrentPosition, geocodeSearch } from './modules/location.js';
+import { fetchNews } from './modules/newsService.js';
+import { fetchTrivia } from './modules/factsService.js';
+import { getFavorites, addFavorite } from './modules/storage.js';
+import { renderNewsCards, renderTrivia, renderFavorites, setActiveTab } from './modules/ui.js';
 
-// --- 1. Render News Cards ---
-export function renderNewsCards(articles) {
-    newsContainer.innerHTML = '';
+// --- Initialize Map ---
+const map = initializeMap();
+let currentLocation = null;
 
-    if (!articles || articles.length === 0) {
-        newsContainer.innerHTML = `<p class="text-center text-gray-500 mt-4">No news available.</p>`;
-        return;
-    }
+// --- Load Favorites ---
+let favorites = getFavorites();
+renderFavorites(favorites);
 
-    articles.forEach(article => {
-        const card = document.createElement('div');
-        card.className = 'news-card p-4 mb-4 rounded-lg bg-white shadow cursor-pointer';
-        card.innerHTML = `
-            ${article.imageUrl ? `<img src="${article.imageUrl}" alt="${article.title}" class="w-full h-48 object-cover rounded-md mb-2">` : ''}
-            <h3 class="font-semibold text-lg mb-1">${article.title}</h3>
-            <p class="text-gray-600 mb-2">${article.description || ''}</p>
-            <p class="text-sm text-gray-400 mb-2">Source: ${article.source} | Author: ${article.author}</p>
-            <a href="${article.url}" target="_blank" class="text-blue-600 hover:underline">Read More</a>
-        `;
-        newsContainer.appendChild(card);
-    });
-}
+// --- Search Form ---
+const searchForm = document.getElementById('search-form');
+const searchInput = document.getElementById('search-input');
 
-// --- 2. Render Trivia ---
-export function renderTrivia(trivia) {
-    triviaContainer.innerHTML = '';
+searchForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const query = searchInput.value.trim();
+    if (!query) return;
 
-    if (!trivia) {
-        triviaContainer.innerHTML = `<p class="text-center text-gray-500 mt-4">No trivia available.</p>`;
-        return;
-    }
-
-    const questionEl = document.createElement('div');
-    questionEl.className = 'mb-4';
-    questionEl.innerHTML = `<h3 class="font-semibold text-lg mb-2">${trivia.question}</h3>`;
-
-    triviaContainer.appendChild(questionEl);
-
-    trivia.allAnswers.forEach(answer => {
-        const btn = document.createElement('button');
-        btn.className = 'answer-btn';
-        btn.textContent = answer;
-
-        btn.addEventListener('click', () => {
-            const buttons = triviaContainer.querySelectorAll('.answer-btn');
-            buttons.forEach(b => b.disabled = true);
-
-            if (answer === trivia.correctAnswer) {
-                btn.classList.add('correct');
-            } else {
-                btn.classList.add('incorrect');
-                // Highlight the correct answer
-                const correctBtn = Array.from(buttons).find(b => b.textContent === trivia.correctAnswer);
-                if (correctBtn) correctBtn.classList.add('correct');
-            }
-        });
-
-        triviaContainer.appendChild(btn);
-    });
-}
-
-// --- 3. Render Favorites ---
-export function renderFavorites(favorites) {
-    favoritesContainer.innerHTML = '';
-
-    if (!favorites || favorites.length === 0) {
-        favoritesContainer.innerHTML = `<p class="text-gray-500">No favorites yet.</p>`;
-        return;
-    }
-
-    favorites.forEach(fav => {
-        const favEl = document.createElement('div');
-        favEl.className = 'p-2 mb-2 bg-gray-100 rounded cursor-pointer hover:bg-gray-200';
-        favEl.textContent = `${fav.city}, ${fav.region}`;
-        favoritesContainer.appendChild(favEl);
-
-        favEl.addEventListener('click', () => {
-            const event = new CustomEvent('favoriteSelected', { detail: fav });
-            document.dispatchEvent(event);
-        });
-    });
-}
-
-// --- 4. Set Active Tab ---
-export function setActiveTab(tab) {
-    tabButtons.forEach(btn => {
-        if (btn.dataset.tab === tab) {
-            btn.classList.add('active-tab');
-        } else {
-            btn.classList.remove('active-tab');
+    try {
+        const location = await geocodeSearch(query);
+        if (!location) {
+            alert('Location not found.');
+            return;
         }
-    });
-
-    if (tab === 'news') {
-        newsContainer.style.display = 'block';
-        triviaContainer.style.display = 'none';
-    } else {
-        newsContainer.style.display = 'none';
-        triviaContainer.style.display = 'block';
+        currentLocation = location;
+        updateMap(map, location.lat, location.lng);
+        await loadNews(location.city);
+        await loadTrivia(location.city);
+    } catch (err) {
+        console.error(err);
+        alert('Failed to fetch location.');
     }
+});
+
+// --- Favorites Click ---
+document.addEventListener('favoriteSelected', async e => {
+    const fav = e.detail;
+    currentLocation = fav;
+    updateMap(map, fav.lat, fav.lng);
+    await loadNews(fav.city);
+    await loadTrivia(fav.city);
+});
+
+// --- Tabs ---
+document.getElementById('news-tab').addEventListener('click', () => setActiveTab('news'));
+document.getElementById('trivia-tab').addEventListener('click', () => setActiveTab('trivia'));
+
+// --- Trivia Button ---
+document.getElementById('trivia-btn').addEventListener('click', async () => {
+    if (!currentLocation) return alert('Select a location first.');
+    await loadTrivia(currentLocation.city);
+});
+
+// --- Functions ---
+async function loadNews(city) {
+    const articles = await fetchNews(city, 'general');
+    renderNewsCards(articles);
 }
+
+async function loadTrivia(city) {
+    const triviaData = await fetchTrivia(city);
+    renderTrivia(triviaData);
+}
+
+// --- Initial Load: Get user position ---
+(async () => {
+    try {
+        const pos = await getCurrentPosition();
+        const { latitude, longitude } = pos.coords;
+        currentLocation = { city: 'Current Location', region: '', lat: latitude, lng: longitude };
+        updateMap(map, latitude, longitude);
+        await loadNews(currentLocation.city);
+        await loadTrivia(currentLocation.city);
+    } catch (err) {
+        console.warn('Geolocation failed, using default location.');
+        currentLocation = { city: 'New York', region: 'NY', lat: 40.7128, lng: -74.0060 };
+        updateMap(map, currentLocation.lat, currentLocation.lng);
+        await loadNews(currentLocation.city);
+        await loadTrivia(currentLocation.city);
+    }
+})();

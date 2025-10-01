@@ -1,95 +1,86 @@
-// js/ui.js
+// js/modules/ui.js
 
 /**
- * Renders a list of news articles into the specified container.
- * @param {Array} articles - Array of news article objects.
- * @param {HTMLElement} container - DOM element where the news will be displayed.
+ * UI Module - Responsible for rendering news, trivia, favorites, and tab management
  */
-export function renderNewsCards(articles, container) {
-    container.innerHTML = ''; // Clear previous content
+
+// --- Render News Cards ---
+export function renderNewsCards(articles) {
+    const container = document.getElementById('news-container');
+    container.innerHTML = '';
     if (!articles || articles.length === 0) {
-        container.innerHTML = '<p>No news articles available.</p>';
+        container.textContent = 'No news available for this location.';
         return;
     }
 
     articles.forEach(article => {
         const card = document.createElement('div');
-        card.className = 'news-card p-4 mb-4 rounded-lg shadow-md bg-white';
+        card.className = 'news-card p-4 mb-4 bg-white rounded shadow';
         card.innerHTML = `
-            <img src="${article.imageUrl || 'https://via.placeholder.com/400x200'}" alt="News Image" class="w-full h-48 object-cover rounded-md mb-2">
+            ${article.imageUrl ? `<img src="${article.imageUrl}" alt="${article.title}" class="w-full h-48 object-cover mb-2 rounded"/>` : ''}
             <h3 class="text-lg font-bold mb-1">${article.title}</h3>
-            <p class="text-gray-600 mb-2">${article.description || ''}</p>
+            <p class="text-gray-700 mb-2">${article.description || ''}</p>
             <a href="${article.url}" target="_blank" class="text-blue-600 hover:underline">Read more</a>
         `;
         container.appendChild(card);
     });
 }
 
-/**
- * Renders a trivia question into the specified container.
- * @param {Object} trivia - Trivia question object.
- * @param {HTMLElement} container - DOM element where the trivia will be displayed.
- */
-export function renderTrivia(trivia, container) {
-    container.innerHTML = ''; // Clear previous content
-    if (!trivia) {
-        container.innerHTML = '<p>No trivia available at the moment.</p>';
+// --- Render Trivia / Fun Fact ---
+export function renderTrivia(triviaData) {
+    const container = document.getElementById('trivia-container');
+    container.innerHTML = '';
+    if (!triviaData) {
+        container.textContent = 'No trivia available at the moment.';
         return;
     }
 
-    const questionEl = document.createElement('h2');
-    questionEl.textContent = trivia.question;
-    questionEl.className = 'text-xl font-semibold mb-4';
+    const questionEl = document.createElement('h3');
+    questionEl.textContent = triviaData.question;
+    questionEl.className = 'font-semibold mb-2';
+
     container.appendChild(questionEl);
 
-    trivia.allAnswers.forEach(answer => {
+    triviaData.allAnswers.forEach(answer => {
         const btn = document.createElement('button');
-        btn.className = 'answer-btn';
+        btn.className = 'answer-btn mb-2';
         btn.textContent = answer;
         btn.addEventListener('click', () => {
-            const correct = answer === trivia.correctAnswer;
+            const correct = answer === triviaData.correctAnswer;
             btn.classList.add(correct ? 'correct' : 'incorrect');
-            // Disable all buttons after selection
-            Array.from(container.querySelectorAll('.answer-btn')).forEach(b => b.disabled = true);
+            // disable all buttons
+            container.querySelectorAll('button').forEach(b => b.disabled = true);
         });
         container.appendChild(btn);
     });
 }
 
-/**
- * Renders a list of favorite locations.
- * @param {Array} favorites - Array of favorite location objects.
- * @param {HTMLElement} container - DOM element where favorites will be displayed.
- * @param {Function} onClickCallback - Function to call when a favorite is clicked.
- */
-export function renderFavorites(favorites, container, onClickCallback) {
+// --- Render Favorites ---
+export function renderFavorites(favorites) {
+    const container = document.getElementById('favorites-container');
     container.innerHTML = '';
     if (!favorites || favorites.length === 0) {
-        container.innerHTML = '<p>No favorites yet.</p>';
+        container.textContent = 'No favorites yet.';
         return;
     }
 
     favorites.forEach(fav => {
-        const btn = document.createElement('button');
-        btn.className = 'block w-full text-left p-2 mb-2 bg-gray-100 rounded hover:bg-gray-200';
-        btn.textContent = `${fav.city}, ${fav.region}`;
-        btn.addEventListener('click', () => onClickCallback(fav));
-        container.appendChild(btn);
+        const div = document.createElement('div');
+        div.className = 'favorite-item cursor-pointer p-2 hover:bg-gray-100 rounded';
+        div.textContent = `${fav.city}, ${fav.region}`;
+        div.addEventListener('click', () => {
+            const event = new CustomEvent('favoriteSelected', { detail: fav });
+            document.dispatchEvent(event);
+        });
+        container.appendChild(div);
     });
 }
 
-/**
- * Updates the tab buttons’ active/inactive state.
- * @param {string} activeTab - 'news' or 'facts'.
- * @param {HTMLElement} newsBtn - News tab button element.
- * @param {HTMLElement} factsBtn - Facts tab button element.
- */
-export function setActiveTab(activeTab, newsBtn, factsBtn) {
-    if (activeTab === 'news') {
-        newsBtn.classList.add('active-tab');
-        factsBtn.classList.remove('active-tab');
-    } else {
-        newsBtn.classList.remove('active-tab');
-        factsBtn.classList.add('active-tab');
-    }
+// --- Set Active Tab ---
+export function setActiveTab(tabName) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active-tab'));
+    document.getElementById(`${tabName}-tab`).classList.add('active-tab');
+
+    document.getElementById('news-view').style.display = tabName === 'news' ? 'block' : 'none';
+    document.getElementById('trivia-view').style.display = tabName === 'trivia' ? 'block' : 'none';
 }
