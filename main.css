@@ -1,0 +1,127 @@
+/* main.css: Custom Styles for GeoSphere */
+
+/* --- Core Styles --- */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f9fafb;
+    /* Tailwind gray-50 */
+    color: #1f2937;
+    /* Tailwind gray-800 */
+    margin: 0;
+    padding: 0;
+}
+
+/* Mapbox container */
+#map-container {
+    position: relative;
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    /* Tailwind gray-200 */
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+/* --- News Cards --- */
+.news-card {
+    background: white;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -2px rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.news-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+        0 4px 6px -4px rgba(0, 0, 0, 0.05);
+}
+
+/* --- Tabs --- */
+.tab-btn {
+    flex: 1;
+    padding: 0.75rem;
+    text-align: center;
+    font-weight: 500;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.tab-btn.active-tab {
+    border-color: #009688;
+    /* Teal */
+    color: #009688;
+    font-weight: 600;
+}
+
+.tab-btn:not(.active-tab) {
+    color: #4b5563;
+    /* Tailwind gray-600 */
+}
+
+/* --- Fun Facts Buttons --- */
+.answer-btn {
+    display: block;
+    width: 100%;
+    padding: 1rem;
+    text-align: left;
+    border-radius: 0.75rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    background: white;
+    transition: background-color 0.2s, transform 0.1s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1),
+        0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.answer-btn:not([disabled]):hover {
+    background-color: #f3f4f6;
+    /* Tailwind gray-100 */
+    transform: translateY(-1px);
+}
+
+.answer-btn.correct {
+    background-color: #10b981;
+    /* Tailwind green-500 */
+    color: white;
+    font-weight: bold;
+}
+
+.answer-btn.incorrect {
+    background-color: #ef4444;
+    /* Tailwind red-500 */
+    color: white;
+    font-weight: bold;
+}
+
+/* --- Responsive Layout Adjustments --- */
+
+/* Desktop: sidebar visible, tabs hidden */
+@media (min-width: 768px) {
+    #facts-section {
+        display: none !important;
+        /* Mobile facts hidden on desktop */
+    }
+
+    .tab-btn {
+        display: none;
+        /* Tabs hidden on desktop */
+    }
+
+    #desktop-search {
+        display: block;
+    }
+
+    #mobile-search {
+        display: none;
+    }
+}
+
+/* Mobile: sidebar hidden */
+@media (max-width: 767px) {
+    aside {
+        display: none !important;
+    }
+}
