@@ -1,8 +1,7 @@
 // js/app.js
-
 import { initializeMap, updateMap, getCurrentPosition, geocodeSearch, reverseGeocode } from './modules/location.js';
 import { fetchNews } from './modules/newsService.js';
-import { fetchTriviaQuestion, checkAnswer } from './modules/factsService.js';
+import { fetchTriviaQuestion, getRandomFact } from './modules/factsService.js'; // Fixed import
 import { addFavorite, removeFavorite, getFavorites, isFavorite } from './modules/storage.js';
 import { renderNewsCards, renderTrivia, renderFavorites, setActiveTab } from './modules/ui.js';
 
@@ -15,8 +14,8 @@ let favorites = getFavorites();
 renderFavorites(favorites);
 
 // --- Search Form ---
-const searchForm = document.getElementById('search-form');
-const searchInput = document.getElementById('search-input');
+const searchForm = document.getElementById('searchForm'); // Fixed ID
+const searchInput = document.getElementById('searchInput'); // Fixed ID
 
 searchForm.addEventListener('submit', async e => {
     e.preventDefault();
@@ -49,11 +48,11 @@ document.addEventListener('favoriteSelected', async e => {
 });
 
 // --- Tabs ---
-document.getElementById('news-tab').addEventListener('click', () => setActiveTab('news'));
-document.getElementById('trivia-tab').addEventListener('click', () => setActiveTab('trivia'));
+document.getElementById('tabNews').addEventListener('click', () => setActiveTab('news')); // Fixed ID
+document.getElementById('tabFacts').addEventListener('click', () => setActiveTab('trivia')); // Fixed ID
 
 // --- Trivia Button ---
-document.getElementById('trivia-btn').addEventListener('click', async () => {
+document.getElementById('factBtn').addEventListener('click', async () => { // Fixed ID
     if (!currentLocation) return alert('Select a location first.');
     await loadTrivia(currentLocation.city);
 });
@@ -65,7 +64,7 @@ async function loadNews(city) {
 }
 
 async function loadTrivia(city) {
-    const triviaData = await fetchTrivia(city);
+    const triviaData = await fetchTriviaQuestion(city); // Fixed function name
     renderTrivia(triviaData);
 }
 

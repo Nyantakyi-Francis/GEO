@@ -1,21 +1,20 @@
 // js/modules/ui.js
 
-/**
- * UI Module - Responsible for rendering news, trivia, favorites, and tab management
- */
-
 // --- Render News Cards ---
 export function renderNewsCards(articles) {
-    const container = document.getElementById('news-container');
+    const container = document.getElementById('news');
+    if (!container) return;
+
     container.innerHTML = '';
+
     if (!articles || articles.length === 0) {
-        container.textContent = 'No news available for this location.';
+        container.innerHTML = '<p class="text-gray-500 p-4">No news available for this location.</p>';
         return;
     }
 
     articles.forEach(article => {
         const card = document.createElement('div');
-        card.className = 'news-card p-4 mb-4 bg-white rounded shadow';
+        card.className = 'p-4 mb-4 bg-white rounded shadow';
         card.innerHTML = `
             ${article.imageUrl ? `<img src="${article.imageUrl}" alt="${article.title}" class="w-full h-48 object-cover mb-2 rounded"/>` : ''}
             <h3 class="text-lg font-bold mb-1">${article.title}</h3>
@@ -28,59 +27,43 @@ export function renderNewsCards(articles) {
 
 // --- Render Trivia / Fun Fact ---
 export function renderTrivia(triviaData) {
-    const container = document.getElementById('trivia-container');
-    container.innerHTML = '';
+    const container = document.getElementById('fact');
+    if (!container) return;
+
     if (!triviaData) {
-        container.textContent = 'No trivia available at the moment.';
+        container.innerHTML = '<p class="text-gray-500">No trivia available.</p>';
         return;
     }
 
-    const questionEl = document.createElement('h3');
-    questionEl.textContent = triviaData.question;
-    questionEl.className = 'font-semibold mb-2';
-
-    container.appendChild(questionEl);
-
-    triviaData.allAnswers.forEach(answer => {
-        const btn = document.createElement('button');
-        btn.className = 'answer-btn mb-2';
-        btn.textContent = answer;
-        btn.addEventListener('click', () => {
-            const correct = answer === triviaData.correctAnswer;
-            btn.classList.add(correct ? 'correct' : 'incorrect');
-            // disable all buttons
-            container.querySelectorAll('button').forEach(b => b.disabled = true);
-        });
-        container.appendChild(btn);
-    });
+    container.innerHTML = `
+        <p class="mb-4 p-4 bg-white rounded shadow">${triviaData.answer}</p>
+    `;
 }
 
 // --- Render Favorites ---
 export function renderFavorites(favorites) {
-    const container = document.getElementById('favorites-container');
-    container.innerHTML = '';
-    if (!favorites || favorites.length === 0) {
-        container.textContent = 'No favorites yet.';
-        return;
-    }
-
-    favorites.forEach(fav => {
-        const div = document.createElement('div');
-        div.className = 'favorite-item cursor-pointer p-2 hover:bg-gray-100 rounded';
-        div.textContent = `${fav.city}, ${fav.region}`;
-        div.addEventListener('click', () => {
-            const event = new CustomEvent('favoriteSelected', { detail: fav });
-            document.dispatchEvent(event);
-        });
-        container.appendChild(div);
-    });
+    // Favorites functionality disabled for simplicity
+    console.log('Favorites loaded:', favorites.length);
 }
 
 // --- Set Active Tab ---
 export function setActiveTab(tabName) {
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active-tab'));
-    document.getElementById(`${tabName}-tab`).classList.add('active-tab');
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('border-teal-600', 'text-teal-600');
+        btn.classList.add('text-gray-500');
+    });
 
-    document.getElementById('news-view').style.display = tabName === 'news' ? 'block' : 'none';
-    document.getElementById('trivia-view').style.display = tabName === 'trivia' ? 'block' : 'none';
+    const activeBtn = document.getElementById(tabName === 'news' ? 'tabNews' : 'tabFacts');
+    if (activeBtn) {
+        activeBtn.classList.add('border-teal-600', 'text-teal-600');
+        activeBtn.classList.remove('text-gray-500');
+    }
+
+    // Show/hide sections
+    const newsSection = document.getElementById('newsSection');
+    const factsSection = document.getElementById('factsSection');
+
+    if (newsSection) newsSection.classList.toggle('hidden', tabName !== 'news');
+    if (factsSection) factsSection.classList.toggle('hidden', tabName !== 'trivia');
 }

@@ -1,12 +1,13 @@
 // js/modules/storage.js
-
 const STORAGE_KEY = 'gs-favorites';
+
+// In-memory storage for Claude Artifacts (replaces localStorage)
+let memoryStorage = {};
 
 // Get favorites
 export function getFavorites() {
     try {
-        const favoritesJson = localStorage.getItem(STORAGE_KEY);
-        return favoritesJson ? JSON.parse(favoritesJson) : [];
+        return memoryStorage[STORAGE_KEY] || [];
     } catch (e) {
         console.error("Error reading favorites:", e);
         return [];
@@ -16,7 +17,7 @@ export function getFavorites() {
 // Save favorites internally
 function _saveFavorites(favorites) {
     try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
+        memoryStorage[STORAGE_KEY] = favorites;
     } catch (e) {
         console.error("Error saving favorites:", e);
     }

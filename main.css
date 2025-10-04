@@ -92,3 +92,23 @@ button#fact-btn-desktop:hover {
     color: white;
     font-weight: bold;
 }
+
+
+.active-tab {
+    font-weight: bold;
+    color: #0d9488;
+    /* teal-600 */
+}
+
+/* main.css */
+.hidden {
+    display: none !important;
+}
+
+.tab-btn {
+    transition: all 0.2s ease;
+}
+
+#map {
+    min-height: 300px;
+}
