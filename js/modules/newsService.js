@@ -1,95 +1,87 @@
 // js/modules/newsService.js
 
 /**
- * GeoSphere News Service Module - Currents API Integration with Fallback
+ * GeoSphere News Service Module - WorldNewsAPI.com Integration
  */
 
-const NEWS_API_KEY = '9x60m4b9BcZ8ewxukcx_0cmOPLBbRrkCFiFV31Wi7kYK70oK';
-const NEWS_BASE_URL = 'https://api.currentsapi.services/v1/search';
-
-// Fallback news data for when API fails
-const FALLBACK_NEWS = [
-    {
-        title: "Local Community Event Brings Residents Together",
-        description: "Residents gathered for the annual community festival celebrating local culture and traditions.",
-        url: "#",
-        imageUrl: "https://news-africa.churchofjesuschrist.org/media/960x540/Tesano-screeening-1.jpg",
-        author: "Local News",
-        source: "Community Herald"
-    },
-    {
-        title: "New Park Development Planned for Downtown Area",
-        description: "City council approves plans for a new green space in the urban center.",
-        url: "#",
-        imageUrl: "https://media.kvue.com/assets/KVUE/images/908d32e3-4d77-45bc-8f53-112c25c2e649/908d32e3-4d77-45bc-8f53-112c25c2e649_1920x1080.jpg",
-        author: "City Planning",
-        source: "Urban Times"
-    },
-    {
-        title: "Local Business Wins Sustainability Award",
-        description: "Award recognizes efforts in environmental conservation and community support.",
-        url: "#",
-        imageUrl: "https://cdn.prod.website-files.com/63ecbc360f1f40b191bdddd0/675311cabd665bfecc0ae55d_Copy%20of%20SUSTAINABILITY-2025.webp",
-        author: "Business Desk",
-        source: "Economic Review"
-    }
-];
+const WORLD_NEWS_API_KEY = 'd9366004485645fa8780d40bda10f0db';
+const WORLD_NEWS_BASE_URL = 'https://api.worldnewsapi.com/search-news';
 
 const FILTER_MAP = {
-    general: '',
+    general: 'general',
     tech: 'technology',
     sports: 'sports',
     business: 'business',
     health: 'health'
 };
 
-export async function fetchNews(city, filter) {
-    if (!city) return FALLBACK_NEWS;
+// Fallback news data
+const FALLBACK_NEWS = [
+    {
+        title: "Local Community Events Bring Residents Together",
+        description: "Community gatherings and festivals celebrate local culture and traditions across the region.",
+        url: "#",
+        imageUrl: "https://picsum.photos/400/200?random=1",
+        author: "Local News",
+        source: "Community Herald"
+    },
+    {
+        title: "Urban Development Projects Enhance City Living",
+        description: "New green spaces and infrastructure improvements planned for metropolitan areas.",
+        url: "#",
+        imageUrl: "https://picsum.photos/400/200?random=2",
+        author: "Urban Planning",
+        source: "City Times"
+    }
+];
 
-    const categoryKeyword = FILTER_MAP[filter] ? ` ${FILTER_MAP[filter]}` : '';
-    const query = `${city}${categoryKeyword}`;
+export async function fetchNews(city, filter) {
+    if (!city) return getFallbackNews('your location');
 
     try {
-        console.log(`Fetching news for: ${query}`);
+        const category = FILTER_MAP[filter] || 'general';
+        const query = city;
 
-        const response = await fetch(`${NEWS_BASE_URL}?keywords=${encodeURIComponent(query)}`, {
-            headers: {
-                'Authorization': NEWS_API_KEY
-            }
-        });
+        // WorldNewsAPI.com call
+        const url = `${WORLD_NEWS_BASE_URL}?api-key=${WORLD_NEWS_API_KEY}&text=${encodeURIComponent(query)}&source-countries=us,gb&language=en&number=10`;
+
+        console.log(`Fetching WorldNewsAPI for: ${query} (${category})`);
+
+        const response = await fetch(url);
 
         if (!response.ok) {
-            throw new Error(`News API error: ${response.statusText}`);
+            throw new Error(`WorldNewsAPI error: ${response.status}`);
         }
 
         const data = await response.json();
 
         if (!data.news || data.news.length === 0) {
-            console.log('No news found, using fallback data');
+            console.log('No WorldNewsAPI articles found, using fallback');
             return getFallbackNews(city);
         }
 
-        // Map Currents API response to our app's format
+        // Map WorldNewsAPI response to our app's format
         return data.news.map(article => ({
-            source: article.author || article.source || 'Unknown',
-            author: article.author || 'Unknown',
+            source: article.source?.name || 'Unknown Source',
+            author: article.author || 'Unknown Author',
             title: article.title,
-            description: article.description,
+            description: article.text?.substring(0, 150) + '...' || 'No description available',
             url: article.url,
-            imageUrl: article.image || 'https://via.placeholder.com/400x200/3B82F6/FFFFFF?text=News+Image'
+            imageUrl: article.image || `https://picsum.photos/400/200?random=${Math.floor(Math.random() * 10)}`
         }));
 
     } catch (error) {
-        console.error('News API fetch failed, using fallback:', error);
+        console.error('WorldNewsAPI fetch failed, using fallback:', error);
         return getFallbackNews(city);
     }
 }
 
 // Fallback news generator
 function getFallbackNews(city) {
-    return FALLBACK_NEWS.map(article => ({
+    return FALLBACK_NEWS.map((article, index) => ({
         ...article,
-        title: article.title.replace('Local', city),
-        description: article.description.replace('community', `${city} community`)
+        title: article.title.replace('Local', city || 'Local'),
+        description: article.description,
+        imageUrl: `https://picsum.photos/400/200?random=${index + 1}`
     }));
 }
